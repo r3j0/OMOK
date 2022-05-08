@@ -4,10 +4,7 @@
 
 /*
 	(( OMOK )) Author : r3j0
-	Last Backup : 2022-05-08 PM 03:26
-
-	추가할 예정 >
-	5. 리드미 마크다운 ( 마크다운 배우기 )
+	Last Backup : 2022-05-08 PM 04:48
 */
 
 // Set Arrow key	
