@@ -1,11 +1,15 @@
 #include <stdio.h>
 #include <windows.h>
+#include <string.h>
+#include <stdlib.h>
 #include <conio.h>
 
 /*
 	(( OMOK )) Author : r3j0
 	Last Backup : 2022-05-08 PM 04:48
 */
+
+
 
 // Set Arrow key	
 #define UP 72
@@ -24,6 +28,9 @@
 
 // DEBUG Mode : define DEBUG
 #define DEBUG
+
+// Database Size
+#define DS 22
 
 #ifdef DEBUG
 char debugName[1000][100] = {
@@ -48,6 +55,10 @@ char debugName[1000][100] = {
 int debug[1000] = { 0, };
 int debug_size = 7;
 #endif
+ 
+// Database
+char rec[5000] = "";
+char path[256] = "C:\\Users\\¹ÚÁ¤±Ù\\Desktop\\Code\\OMOK\\database.txt";
 
 #ifdef DEBUG
 void debugPrint();
@@ -138,10 +149,58 @@ int main(void) {
 
 				if (turn == 0) {
 					turn = 1;
+
+					char x[10] = "0";
+					char y[10] = "0";
+
+					char x_1[10];
+					char x_2[10];
+					char y_1[10];
+					char y_2[10];
+
+					char rego[10] = "[1]";
+
+					itoa(now_point[1] / 10, x_1, 10);
+					itoa(now_point[1] % 10, x_2, 10);
+					itoa(now_point[0] / 10, y_1, 10);
+					itoa(now_point[0] % 10, y_2, 10);
+					strcat(x_1, x_2);
+					strcpy(x, x_1);
+					strcat(y_1, y_2);
+					strcpy(y, y_1);
+					strcat(rego, x);
+					strcat(rego, y);
+					strcat(rec, rego);
+
 					board[now_point[0]][now_point[1]] = 1;
 				}
 				else if (turn == 1) {
 					turn = 0;
+
+					char x[10];
+					char y[10];
+
+					char x_1[10];
+					char x_2[10];
+					char y_1[10];
+					char y_2[10];
+
+					char rego[10] = "[2]";
+
+					itoa(now_point[1] / 10, x_1, 10);
+					itoa(now_point[1] % 10, x_2, 10);
+					itoa(now_point[0] / 10, y_1, 10);
+					itoa(now_point[0] % 10, y_2, 10);
+					strcat(x_1, x_2);
+					strcpy(x, x_1);
+					strcat(y_1, y_2);
+					strcpy(y, y_1);
+					strcat(rego, x);
+					strcat(rego, y);
+					strcat(rec, rego);
+
+					board[now_point[0]][now_point[1]] = 1;
+
 					board[now_point[0]][now_point[1]] = 2;
 				}
 				tcolor(0, 12); // stone print, color set
@@ -168,6 +227,10 @@ int main(void) {
 					gotoxy(1, 23);
 					printf("Black Win!");
 					gotoxy(1, 26);
+					FILE* fp = fopen(path, "a");
+					fputs(rec, fp);
+					fputs("\n",fp);
+					fclose(fp);
 					return 0;
 				}
 				else if (vic == 2) { // win white
@@ -177,6 +240,10 @@ int main(void) {
 					gotoxy(1, 23);
 					printf("White Win!");
 					gotoxy(1, 26);
+					FILE* fp = fopen(path, "a");
+					fputs(rec, fp);
+					fputs("\n",fp);
+					fclose(fp);
 					return 0;
 				}
 
