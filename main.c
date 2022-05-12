@@ -6,7 +6,7 @@
 
 /*
 	(( OMOK )) Author : r3j0
-	Last Backup : 2022-05-08 PM 04:48
+	Last Backup : 2022-05-11 PM 03:47
 */
 
 
@@ -59,9 +59,20 @@ int debug_size = 7;
 // Database
 char rec[5000] = "";
 char path[256] = "C:\\Users\\박정근\\Desktop\\Code\\OMOK\\database.txt";
+#define DATABASE 1
+// 0 : Record On 1 : Record Off
+
+// AI Standard Algorithm
+int black_ai_add[19][19] = { 0, };
+int white_ai_add[19][19] = { 0, };
+#define AI_ADD_DEBUG 2
+// 0 : Print Black
+// 1 : Print White
+// 2 : Print All
 
 #ifdef DEBUG
 void debugPrint();
+void debugAiAddPrint();
 #endif
 void tcolor(int foreground, int background);
 void gotoxy(int x, int y);
@@ -76,6 +87,8 @@ int check_victory(int board[][19], int point[], int t);
 int line_number(int board[][19], int point[], int t, int dir);
 void victory_stone_color(int board[][19], int point[], int t);
 
+void add_board(int p[], int t);
+
 int main(void) {
 
 	int board[19][19] = { 0, }; // [0] : y, [1] : x
@@ -84,6 +97,8 @@ int main(void) {
 
 	int turn = 0; // 0 : black, 1 : white
 	int vic = 0; // 0 : no, 1 : black win, 2 : white win
+
+	system("mode con cols=200 lines=50");
 
 	print_board(board, now_point);
 	print_turn(turn);
@@ -94,116 +109,15 @@ int main(void) {
 		debug[0] = turn;
 		debug[1] = now_point[0];
 		debug[2] = now_point[1];
-		debugPrint();
+		debugPrint(); debugAiAddPrint();
 #endif
-		key = _getch();
-		if (_kbhit()) {
+
+		if (MODE == 1 || (MODE == 2 && turn == 0) || (MODE == 3 && turn == 1)) { // Player Input Mode
 			key = _getch();
-			gotoBoardxy(now_point[1], now_point[0]); // previous cursor color reset
-			tcolor(0, 15);
-			if (board[now_point[0]][now_point[1]] == 1)
-				printf("●");
-			else if (board[now_point[0]][now_point[1]] == 2)
-				printf("○");
-			else
-				printf("  ");
-
-			if (key == UP) { // UP
-				if (now_point[0] != 0) {
-					now_point[0]--;
-				}
-			}
-			else if (key == DOWN) { // DOWN
-				if (now_point[0] != 18) {
-					now_point[0]++;
-				}
-			}
-			else if (key == LEFT) { // LEFT
-				if (now_point[1] != 0) {
-					now_point[1]--;
-				}
-			}
-			else if (key == RIGHT) { // RIGHT
-				if (now_point[1] != 18) {
-					now_point[1]++;
-				}
-			}
-
-			gotoBoardxy(now_point[1], now_point[0]); // now cursor color set
-			tcolor(0, 12);
-			if (board[now_point[0]][now_point[1]] == 1)
-				printf("●");
-			else if (board[now_point[0]][now_point[1]] == 2)
-				printf("○");
-			else
-				printf("  ");
-
-			print_turn(turn);
-			point_home();
-		}
-		if (key == SPACE) {
-			if (board[now_point[0]][now_point[1]] == 0) { // overlap
-				gotoBoardxy(now_point[1], now_point[0]);
-
-				vic = check_victory(board, now_point, turn); // check victory
-
-				if (turn == 0) {
-					turn = 1;
-
-					char x[10] = "0";
-					char y[10] = "0";
-
-					char x_1[10];
-					char x_2[10];
-					char y_1[10];
-					char y_2[10];
-
-					char rego[10] = "[1]";
-
-					itoa(now_point[1] / 10, x_1, 10);
-					itoa(now_point[1] % 10, x_2, 10);
-					itoa(now_point[0] / 10, y_1, 10);
-					itoa(now_point[0] % 10, y_2, 10);
-					strcat(x_1, x_2);
-					strcpy(x, x_1);
-					strcat(y_1, y_2);
-					strcpy(y, y_1);
-					strcat(rego, x);
-					strcat(rego, y);
-					strcat(rec, rego);
-
-					board[now_point[0]][now_point[1]] = 1;
-				}
-				else if (turn == 1) {
-					turn = 0;
-
-					char x[10];
-					char y[10];
-
-					char x_1[10];
-					char x_2[10];
-					char y_1[10];
-					char y_2[10];
-
-					char rego[10] = "[2]";
-
-					itoa(now_point[1] / 10, x_1, 10);
-					itoa(now_point[1] % 10, x_2, 10);
-					itoa(now_point[0] / 10, y_1, 10);
-					itoa(now_point[0] % 10, y_2, 10);
-					strcat(x_1, x_2);
-					strcpy(x, x_1);
-					strcat(y_1, y_2);
-					strcpy(y, y_1);
-					strcat(rego, x);
-					strcat(rego, y);
-					strcat(rec, rego);
-
-					board[now_point[0]][now_point[1]] = 1;
-
-					board[now_point[0]][now_point[1]] = 2;
-				}
-				tcolor(0, 12); // stone print, color set
+			if (_kbhit()) {
+				key = _getch();
+				gotoBoardxy(now_point[1], now_point[0]); // previous cursor color reset
+				tcolor(0, 15);
 				if (board[now_point[0]][now_point[1]] == 1)
 					printf("●");
 				else if (board[now_point[0]][now_point[1]] == 2)
@@ -211,48 +125,172 @@ int main(void) {
 				else
 					printf("  ");
 
-				point_home();
-
-#ifdef DEBUG
-				debug[0] = turn;
-				debug[1] = now_point[0];
-				debug[2] = now_point[1];
-				debugPrint();
-#endif
-
-				if (vic == 1) { // win black
-					turn = 0;
-					victory_stone_color(board, now_point, turn);
-					tcolor(15, 0);
-					gotoxy(1, 23);
-					printf("Black Win!");
-					gotoxy(1, 26);
-					FILE* fp = fopen(path, "a");
-					fputs(rec, fp);
-					fputs("\n",fp);
-					fclose(fp);
-					return 0;
+				if (key == UP) { // UP
+					if (now_point[0] != 0) {
+						now_point[0]--;
+					}
 				}
-				else if (vic == 2) { // win white
-					turn = 1;
-					victory_stone_color(board, now_point, turn); 
-					tcolor(15, 0);
-					gotoxy(1, 23);
-					printf("White Win!");
-					gotoxy(1, 26);
-					FILE* fp = fopen(path, "a");
-					fputs(rec, fp);
-					fputs("\n",fp);
-					fclose(fp);
-					return 0;
+				else if (key == DOWN) { // DOWN
+					if (now_point[0] != 18) {
+						now_point[0]++;
+					}
 				}
+				else if (key == LEFT) { // LEFT
+					if (now_point[1] != 0) {
+						now_point[1]--;
+					}
+				}
+				else if (key == RIGHT) { // RIGHT
+					if (now_point[1] != 18) {
+						now_point[1]++;
+					}
+				}
+
+				gotoBoardxy(now_point[1], now_point[0]); // now cursor color set
+				tcolor(0, 12);
+				if (board[now_point[0]][now_point[1]] == 1)
+					printf("●");
+				else if (board[now_point[0]][now_point[1]] == 2)
+					printf("○");
+				else
+					printf("  ");
 
 				print_turn(turn);
 				point_home();
 			}
+			if (key == SPACE) {
+
+				if (board[now_point[0]][now_point[1]] == 0) { // overlap
+					gotoBoardxy(now_point[1], now_point[0]);
+
+					vic = check_victory(board, now_point, turn); // check victory
+
+					if (turn == 0) {
+						turn = 1;
+
+						char x[10] = "0";
+						char y[10] = "0";
+
+						char x_1[10];
+						char x_2[10];
+						char y_1[10];
+						char y_2[10];
+
+						char rego[10] = "[1]";
+
+						itoa(now_point[1] / 10, x_1, 10);
+						itoa(now_point[1] % 10, x_2, 10);
+						itoa(now_point[0] / 10, y_1, 10);
+						itoa(now_point[0] % 10, y_2, 10);
+						strcat(x_1, x_2);
+						strcpy(x, x_1);
+						strcat(y_1, y_2);
+						strcpy(y, y_1);
+						strcat(rego, x);
+						strcat(rego, y);
+						strcat(rec, rego);
+
+						black_ai_add[now_point[0]][now_point[1]] = 1;
+						white_ai_add[now_point[0]][now_point[1]] = 1;
+
+						add_board(now_point, 1); // White 가 Black 이 놓은 걸 보고 가중치 추가
+
+						board[now_point[0]][now_point[1]] = 1;
+					}
+					else if (turn == 1) {
+						turn = 0;
+
+						char x[10];
+						char y[10];
+
+						char x_1[10];
+						char x_2[10];
+						char y_1[10];
+						char y_2[10];
+
+						char rego[10] = "[2]";
+
+						itoa(now_point[1] / 10, x_1, 10);
+						itoa(now_point[1] % 10, x_2, 10);
+						itoa(now_point[0] / 10, y_1, 10);
+						itoa(now_point[0] % 10, y_2, 10);
+						strcat(x_1, x_2);
+						strcpy(x, x_1);
+						strcat(y_1, y_2);
+						strcpy(y, y_1);
+						strcat(rego, x);
+						strcat(rego, y);
+						strcat(rec, rego);
+
+					
+						black_ai_add[now_point[0]][now_point[1]] = 2;
+						white_ai_add[now_point[0]][now_point[1]] = 2;
+
+						add_board(now_point, 0); // Black 이 White가 놓은 걸 보고 가중치 추가
+
+						board[now_point[0]][now_point[1]] = 2;
+					}
+					tcolor(0, 12); // stone print, color set
+					if (board[now_point[0]][now_point[1]] == 1)
+						printf("●");
+					else if (board[now_point[0]][now_point[1]] == 2)
+						printf("○");
+					else
+						printf("  ");
+
+					point_home();
+
+#ifdef DEBUG
+					debug[0] = turn;
+					debug[1] = now_point[0];
+					debug[2] = now_point[1];
+					debugPrint();
+#endif
+
+					if (vic == 1) { // win black
+						turn = 0;
+						victory_stone_color(board, now_point, turn);
+						tcolor(15, 0);
+						gotoxy(1, 23);
+						printf("Black Win!");
+						gotoxy(1, 26);
+#if DATABASE == 0
+						FILE* fp = fopen(path, "a");
+						fputs(rec, fp);
+						fputs("\n", fp);
+						fclose(fp);
+#endif
+						return 0;
+					}
+					else if (vic == 2) { // win white
+						turn = 1;
+						victory_stone_color(board, now_point, turn);
+						tcolor(15, 0);
+						gotoxy(1, 23);
+						printf("White Win!");
+						gotoxy(1, 26);
+#if DATABASE == 0
+						FILE* fp = fopen(path, "a");
+						fputs(rec, fp);
+						fputs("\n", fp);
+						fclose(fp);
+#endif
+						return 0;
+					}
+
+					print_turn(turn);
+					point_home();
+				}
+#ifdef DEBUG
+				debugAiAddPrint();
+#endif
+			}
+			if (key == ESC) {
+				break;
+			}
 		}
-		if (key == ESC) {
-			break;
+		else { // AI Input Mode
+			
 		}
 	}
 
@@ -268,6 +306,78 @@ void debugPrint() {
 		gotoxy(50, i + 2);
 		printf("%s : %d", debugName[i], debug[i]);
 	}
+
+	point_home();
+}
+
+void debugAiAddPrint() {
+#if AI_ADD_DEBUG == 0 || AI_ADD_DEBUG == 2
+	gotoxy(100, 2);
+	tcolor(0, 15);
+	printf(" ● ");
+	for (int i = 1; i < 20; i++) { // number - x
+		printf("%3d", i);
+	}
+	gotoxy(100, 3);
+	for (int i = 1; i < 20; i++) {
+		tcolor(0, 15);
+		printf("%3d", i); // number - y
+		tcolor(15, 0);
+		for (int j = 1; j < 20; j++) {
+			if (black_ai_add[i - 1][j - 1] == 1) {
+				printf(" ");
+				tcolor(0, 15);
+				printf("●");
+				tcolor(15, 0);
+			}
+			else if (black_ai_add[i - 1][j - 1] == 2) {
+				printf(" ");
+				tcolor(0, 15);
+				printf("○");
+				tcolor(15, 0);
+			}
+			else
+				printf("%3d", black_ai_add[i - 1][j - 1]);
+		}
+		gotoxy(100, 3 + i);
+	}
+
+	tcolor(15, 0);
+#endif
+#if AI_ADD_DEBUG == 1 || AI_ADD_DEBUG == 2
+	gotoxy(100, 25);
+	tcolor(0, 15);
+	printf(" ○ ");
+	for (int i = 1; i < 20; i++) { // number - x
+		printf("%3d", i);
+	}
+	gotoxy(100, 26);
+	for (int i = 1; i < 20; i++) {
+		tcolor(0, 15);
+		printf("%3d", i); // number - y
+		tcolor(15, 0);
+		for (int j = 1; j < 20; j++) {
+			if (white_ai_add[i - 1][j - 1] == 1) {
+				printf(" ");
+				tcolor(0, 15);
+				printf("●");
+				tcolor(15, 0);
+			}
+			else if (white_ai_add[i - 1][j - 1] == 2) {
+				printf(" ");
+				tcolor(0, 15);
+				printf("○");
+				tcolor(15, 0);
+			}
+			else
+				printf("%3d", white_ai_add[i - 1][j - 1]);
+		}
+		gotoxy(100, 26 + i);
+	}
+
+	tcolor(15, 0);
+#endif
+
 	point_home();
 }
 #endif
@@ -597,5 +707,25 @@ void victory_stone_color(int board[][19], int point[], int t) {
 				}
 			}
 		}
+	}
+}
+
+void add_board(int p[], int t) {
+	if (t == 0) // black 에 추가
+	{
+		/*
+			(1) 8방향 가중치 -1
+			1. left
+			2. leftup
+			3. up
+			4. rightup
+			5. right
+			6. rightdown
+			7. down
+			8. leftdown
+		*/
+	}
+	else { // white 에 추가
+
 	}
 }
