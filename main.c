@@ -7,7 +7,7 @@
 
 /*
 	(( OMOK )) Author : r3j0
-	Last Backup : 2022-05-13 PM 06:19
+	Last Backup : 2022-05-18 PM 05:06
 */
 
 // Set Arrow key	
@@ -47,7 +47,9 @@ char debugName[1000][100] = {
 	"main/ai_x",
 	"main/ai_y",
 	"main/black_ai_add_max_size",
-	"main/white_ai_add_max_size"
+	"main/white_ai_add_max_size",
+	"search_ovelap/black_min",
+	"search_ovelap/white_min"
 };
 /*
 	0 : main/turn
@@ -69,9 +71,12 @@ char debugName[1000][100] = {
 
 	13 : main/black_ai_add_max_size
 	14 : main/white_ai_add_max_size
+
+	15 : search_ovelap/black_min
+	16 : search_ovelap/white_min
 */
 int debug[1000] = { 0, };
-int debug_size = 15;
+int debug_size = 17;
 #endif
  
 // Database
@@ -93,6 +98,12 @@ int black_ai_add_max[361][2] = { 0, };
 int white_ai_add_max[361][2] = { 0, };
 int black_ai_add_max_size = 0;
 int white_ai_add_max_size = 0;
+
+int black_min = 0;
+int white_min = 0;
+
+#define ATTACK_ADD 8
+// 공격 가중치
 
 int start = 0;
 
@@ -192,8 +203,6 @@ int main(void) {
 
 				if (board[now_point[0]][now_point[1]] == 0) { // overlap
 					gotoBoardxy(now_point[1], now_point[0]);
-
-					vic = check_victory(board, now_point, turn); // check victory
 					start = 1;
 
 					if (turn == 0) {
@@ -278,6 +287,8 @@ int main(void) {
 					debugPrint(); debugAiAddPrint(); debugBoard(board);
 #endif
 
+					vic = check_victory(board, now_point, turn==1?0:1); // check victory
+
 					if (vic == 1) { // win black
 						turn = 0;
 						victory_stone_color(board, now_point, turn);
@@ -332,21 +343,33 @@ int main(void) {
 		int x = 0, y = 0;
 		int point[2];
 
-		/*
+		
 		key = _getch();
 		if (key == ESC) {
 			break;
 		}
-		*/
+		
 
 			if (MODE == 2 || (MODE == 4 && turn == 1)) {
-				search_ovelap(board, turn);
+				search_ovelap(board, 0);
+				search_ovelap(board, 1);
 
 				srand(time(NULL));
-				int see = rand() % white_ai_add_max_size;
 
-				x = white_ai_add_max[see][1];
-				y = white_ai_add_max[see][0];
+				if (black_min <= -1*ATTACK_ADD) {
+					int see = rand() % black_ai_add_max_size;
+					x = black_ai_add_max[see][1];
+					y = black_ai_add_max[see][0];
+				}
+				else {
+					int see = rand() % white_ai_add_max_size;
+					x = white_ai_add_max[see][1];
+					y = white_ai_add_max[see][0];
+				}
+#ifdef DEBUG
+				debug[15] = black_min;
+				debug[16] = white_min;
+#endif
 
 				turn = 0;
 
@@ -387,7 +410,8 @@ int main(void) {
 				board[y][x] = 2;
 			}
 			else if (MODE == 3 || (MODE == 4 && turn == 0)) {
-				search_ovelap(board, turn);
+				search_ovelap(board, 1);
+				search_ovelap(board, 0);
 				if (start == 0) {
 					x = 9;
 					y = 9;
@@ -395,11 +419,24 @@ int main(void) {
 				}
 				else {
 					srand(time(NULL));
-					int see = rand() % black_ai_add_max_size;
 
-					x = black_ai_add_max[see][1];
-					y = black_ai_add_max[see][0];
+					if (white_min <= -1*ATTACK_ADD) {
+						int see = rand() % white_ai_add_max_size;
+						x = white_ai_add_max[see][1];
+						y = white_ai_add_max[see][0];
+					}
+					else {
+
+						int see = rand() % black_ai_add_max_size;
+						x = black_ai_add_max[see][1];
+						y = black_ai_add_max[see][0];
+					}
 				}
+
+#ifdef DEBUG
+				debug[15] = black_min;
+				debug[16] = white_min;
+#endif
 
 				turn = 1;
 
@@ -459,6 +496,8 @@ int main(void) {
 			debug[14] = white_ai_add_max_size;
 			debugPrint(); debugAiAddPrint(); debugBoard(board);
 #endif
+
+			vic = check_victory(board, point, turn == 1 ? 0 : 1); // check victory
 
 			if (vic == 1) { // win black
 				turn = 0;
@@ -1808,18 +1847,18 @@ void add_board(int b[][19], int p[], int t) {
 
 void search_ovelap(int b[][19], int t) {
 	if (t == 0) { // ai is black
-		int min = 0;
+		black_min = 0;
 		for (int i = 0; i < 19; i++) {
 			for (int j = 0; j < 19; j++) {
 				if (b[i][j] == 0) {
-					if (black_ai_add[i][j] < min) {
-						min = black_ai_add[i][j];
+					if (black_ai_add[i][j] < black_min) {
+						black_min = black_ai_add[i][j];
 
 						black_ai_add_max[0][0] = i;
 						black_ai_add_max[0][1] = j;
 						black_ai_add_max_size = 1;
 					}
-					else if (black_ai_add[i][j] == min) {
+					else if (black_ai_add[i][j] == black_min) {
 						black_ai_add_max[black_ai_add_max_size][0] = i;
 						black_ai_add_max[black_ai_add_max_size][1] = j;
 						black_ai_add_max_size++;
@@ -1829,18 +1868,18 @@ void search_ovelap(int b[][19], int t) {
 		}
 	}
 	else { // ai is white
-		int min = 0;
+		white_min = 0;
 		for (int i = 0; i < 19; i++) {
 			for (int j = 0; j < 19; j++) {
 				if (b[i][j] == 0) {
-					if (white_ai_add[i][j] < min) {
-						min = white_ai_add[i][j];
+					if (white_ai_add[i][j] < white_min) {
+						white_min = white_ai_add[i][j];
 
 						white_ai_add_max[0][0] = i;
 						white_ai_add_max[0][1] = j;
 						white_ai_add_max_size = 1;
 					}
-					else if (white_ai_add[i][j] == min) {
+					else if (white_ai_add[i][j] == white_min) {
 						white_ai_add_max[white_ai_add_max_size][0] = i;
 						white_ai_add_max[white_ai_add_max_size][1] = j;
 						white_ai_add_max_size++;
