@@ -26,7 +26,6 @@
 // 4 : (B)AI		vs	(W)AI
 
 // DEBUG Mode : define DEBUG
-#define DEBUG
 
 // Database Size
 #define DS 22
@@ -81,7 +80,9 @@ int debug_size = 17;
  
 // Database
 char rec[5000] = "";
+char now_rec[5000] = "";
 char path[256] = "C:\\Users\\박정근\\Desktop\\Code\\OMOK\\database.txt";
+char now_path[256] = "C:\\Users\\박정근\\Desktop\\Code\\OMOK\\now.txt";
 #define DATABASE 1
 // 0 : Record On 1 : Record Off
 
@@ -230,6 +231,11 @@ int main(void) {
 						strcat(rego, y);
 						strcat(rec, rego);
 
+						strcpy(now_rec, rec); 
+						FILE* fp = fopen(now_path, "w");
+						fputs(now_rec, fp);
+						fclose(fp);
+
 						black_ai_add[now_point[0]][now_point[1]] = 1;
 						white_ai_add[now_point[0]][now_point[1]] = 1;
 
@@ -262,6 +268,10 @@ int main(void) {
 						strcat(rego, y);
 						strcat(rec, rego);
 
+						strcpy(now_rec, rec);
+						FILE* fp = fopen(now_path, "w");
+						fputs(now_rec, fp);
+						fclose(fp);
 					
 						black_ai_add[now_point[0]][now_point[1]] = 2;
 						white_ai_add[now_point[0]][now_point[1]] = 2;
@@ -344,6 +354,7 @@ int main(void) {
 		int point[2];
 
 		
+		// Enter Progressing
 		key = _getch();
 		if (key == ESC) {
 			break;
@@ -396,6 +407,10 @@ int main(void) {
 				strcat(rego, y_r);
 				strcat(rec, rego);
 
+				strcpy(now_rec, rec);
+				FILE* fp = fopen(now_path, "w");
+				fputs(now_rec, fp);
+				fclose(fp);
 
 				black_ai_add[y][x] = 2;
 				white_ai_add[y][x] = 2;
@@ -462,6 +477,11 @@ int main(void) {
 				strcat(rego, x_r);
 				strcat(rego, y_r);
 				strcat(rec, rego);
+
+				strcpy(now_rec, rec);
+				FILE* fp = fopen(now_path, "w");
+				fputs(now_rec, fp);
+				fclose(fp);
 
 				black_ai_add[y][x] = 1;
 				white_ai_add[y][x] = 1;
