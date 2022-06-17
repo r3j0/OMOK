@@ -26,7 +26,6 @@
 // 4 : (B)AI		vs	(W)AI
 
 // DEBUG Mode : define DEBUG
-#define DEBUG
 
 #ifdef DEBUG
 char debugName[1000][100] = {
@@ -81,7 +80,7 @@ char rec[5000] = "";
 char now_rec[5000] = "";
 char path[256] = "C:\\Users\\박정근\\Desktop\\Code\\OMOK\\database.txt";
 char now_path[256] = "C:\\Users\\박정근\\Desktop\\Code\\OMOK\\now.txt";
-#define DATABASE 1
+#define DATABASE 0
 // 0 : Record On 1 : Record Off
 
 double dbChanceBlack[19][19] = { 0, };
@@ -92,11 +91,10 @@ int dbChance_all[19][19] = { 0, };
 int dbChanceBlack_vic[19][19] = { 0, };
 int dbChanceWhite_vic[19][19] = { 0, };
 
-
 // AI Standard Algorithm
 int black_ai_add[19][19] = { 0, };
 int white_ai_add[19][19] = { 0, };
-#define AI_ADD_DEBUG 3
+#define AI_ADD_DEBUG 2
 // 0 : Print Black
 // 1 : Print White
 // 2 : Print All
@@ -115,8 +113,10 @@ int white_min = 0;
 // 공격 가중치
 
 int start = 0;
-#define INF_PRO 0
-//무한루프
+#define INF_PRO 1
+//무한루프 1 : 진행 0 : 미진행
+
+//엔터진행 ( #define ENTER )
 
 #ifdef DEBUG
 void debugPrint();
@@ -143,6 +143,7 @@ void search_ovelap(int b[][19], int t);
 int checkDraw(int b[][19]);
 
 void reset(void);
+int record_search_overlap(void);
 
 int main(void) {
 
@@ -176,7 +177,7 @@ int main(void) {
 			debug[2] = now_point[1];
 			debugPrint(); debugAiAddPrint(); debugDatabasePrint(board); debugBoard(board);
 #endif
-			
+
 			for (int i = 0; i < 19; i++) {
 				for (int j = 0; j < 19; j++) {
 					dbChanceBlack[i][j] = 0;
@@ -188,6 +189,7 @@ int main(void) {
 					dbChanceWhite_vic[i][j] = 0;
 				}
 			}
+
 			FILE* fp = fopen(path, "r");
 			char read_str[5000];
 			char read_str_comp[5000];
@@ -393,10 +395,12 @@ int main(void) {
 							gotoxy(1, 24);
 #if DATABASE == 0			
 							strcat(rec, "B");
-							FILE* fp = fopen(path, "a");
-							fputs(rec, fp);
-							fputs("\n", fp);
-							fclose(fp);
+							if (record_search_overlap()) {
+								FILE* fp = fopen(path, "a");
+								fputs(rec, fp);
+								fputs("\n", fp);
+								fclose(fp);
+							}
 #endif
 							return 0;
 						}
@@ -409,10 +413,12 @@ int main(void) {
 							gotoxy(1, 24);
 #if DATABASE == 0
 							strcat(rec, "W");
-							FILE* fp = fopen(path, "a");
-							fputs(rec, fp);
-							fputs("\n", fp);
-							fclose(fp);
+							if (record_search_overlap()) {
+								FILE* fp = fopen(path, "a");
+								fputs(rec, fp);
+								fputs("\n", fp);
+								fclose(fp);
+							}
 #endif
 							return 0;
 						}
@@ -442,12 +448,12 @@ int main(void) {
 
 
 				// Enter Progressing
-				
+#ifdef ENTER
 				key = _getch();
 				if (key == ESC) {
 					break;
 				}
-				
+#endif
 
 				if (MODE == 2 || (MODE == 4 && turn == 1)) {
 					search_ovelap(board, 0);
@@ -613,10 +619,12 @@ int main(void) {
 					gotoxy(1, 24);
 #if DATABASE == 0
 					strcat(rec, "B");
-					FILE* fp = fopen(path, "a");
-					fputs(rec, fp);
-					fputs("\n", fp);
-					fclose(fp);
+					if (record_search_overlap()) {
+						FILE* fp = fopen(path, "a");
+						fputs(rec, fp);
+						fputs("\n", fp);
+						fclose(fp);
+					}
 #endif
 					break;
 				}
@@ -629,10 +637,12 @@ int main(void) {
 					gotoxy(1, 24);
 #if DATABASE == 0
 					strcat(rec, "W");
-					FILE* fp = fopen(path, "a");
-					fputs(rec, fp);
-					fputs("\n", fp);
-					fclose(fp);
+					if (record_search_overlap()) {
+						FILE* fp = fopen(path, "a");
+						fputs(rec, fp);
+						fputs("\n", fp);
+						fclose(fp);
+					}
 #endif
 					break;
 				}
@@ -2109,4 +2119,21 @@ void reset(void) {
 	for (int i = 0; i < 1000; i++)
 		debug[i] = 0;
 #endif
+}
+
+
+int record_search_overlap(void) {
+	FILE* rsop = fopen(path, "r");
+	char rso[5000];
+	int rso_comp = strlen(rec);
+	while (!feof(rsop)) {
+
+		fgets(rso, 5000, rsop);
+		rso[rso_comp] = '\0';
+		if (!strcmp(rso, rec)) {
+			return 0;
+		}
+	}
+	fclose(rsop);
+	return 1;
 }
