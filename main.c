@@ -109,7 +109,7 @@ int white_ai_add_max_size = 0;
 int black_min = 0;
 int white_min = 0;
 
-#define ATTACK_ADD 7
+#define ATTACK_ADD 7	
 // 공격 가중치
 
 int start = 0;
@@ -162,7 +162,7 @@ int main(void) {
 		int vic = 0; // 0 : no, 1 : black win, 2 : white win
 
 		//Sleep(1000);
-		srand(rand()%20000);
+		srand((int)time(NULL));
 		reset();
 		system("cls");
 
